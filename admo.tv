@@ -1,0 +1,68 @@
+#!/bin/bash
+# Entête pour un script Bash
+
+# ajout du compteur i
+
+	i=0
+
+# 1) Sauvegarde des bases de données Mysql
+
+# date du jour
+		backupdate=$(date +%Y-%m-%d)
+
+# création du répertoire de backup
+		/bin/mkdir $dirbackup
+
+#répertoire des sauvegardes
+		dirbackup=/backup/backup-$backupdate
+
+# sauvegarde mysql et compression des données
+		/usr/bin/mysqldump --user=utilisateur --password=motdepasse --all-databases | /usr/bin/gzip > $dirbackup/mysqldump-$backupdate
+
+# 2) test ping d'une autre machine pour envoi de fichier
+
+
+	echo test de connexion avec le second ordinateur
+
+# Ping de l'Adresse ip de la seconde machine
+
+	ping -c 1 192.168.1.23
+	
+# envoi du fichier ou de l'adresse mail
+
+if [[ ${?} == 0 ]]
+
+		then
+
+			echo envoi du fichier zip 
+	
+# Commande pour envoyer le fichier à l'adrresse IP
+ 
+			scp dirbackup root@192.168.1.23:~
+
+		else
+
+	while (( ${?} != 0))
+	do
+
+			echo erreur relancement dans 30 secondes
+
+			sleep 30
+
+	((i+=1))
+
+if [[ i=<50 ]]
+		
+		then
+
+			echo envoi du mail en cours ...
+			mail -s " mesage erreur" gapotihelly.regis@hotmail.fr <<< "Bonjour, l'envoi de fichier a échoué le pc destinataire n'a pas été détécté"
+
+		else
+
+			ping -c 1 192.168.1.23
+
+fi
+	done
+
+fi
